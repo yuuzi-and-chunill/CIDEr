@@ -99,11 +99,11 @@ def main():
     
     sheet_description = sheet.worksheet_by_title(data['description_worksheet'])
     
-    name = list(filter(None, sheet_description.get_col(1, include_tailing_empty=False)[1:]))
-    blip_2 = list(filter(None, sheet_description.get_col(3, include_tailing_empty=False)[1:]))
-    vit_gpt2 = list(filter(None, sheet_description.get_col(4, include_tailing_empty=False)[1:]))
-    git = list(filter(None, sheet_description.get_col(5, include_tailing_empty=False)[1:]))
-    ref = zip(list(filter(None, sheet_description.get_col(6, include_tailing_empty=False)[1:])), list(filter(None, sheet_description.get_col(7, include_tailing_empty=False)[1:])))
+    name = list(filter(None, sheet_description.get_col(1, include_tailing_empty=False)[1:]))[:1]
+    blip_2 = list(filter(None, sheet_description.get_col(3, include_tailing_empty=False)[1:]))[:1]
+    vit_gpt2 = list(filter(None, sheet_description.get_col(4, include_tailing_empty=False)[1:]))[:1]
+    git = list(filter(None, sheet_description.get_col(5, include_tailing_empty=False)[1:]))[:1]
+    ref = zip(list(filter(None, sheet_description.get_col(6, include_tailing_empty=False)[1:]))[:1], list(filter(None, sheet_description.get_col(7, include_tailing_empty=False)[1:]))[:1])
 
     count = 1
     result = {}
@@ -111,7 +111,7 @@ def main():
         print(f"[INFO] Handling description {count}...")
         count += 1
         temp = []
-        for cand in descriptions[:3]:
+        for cand in descriptions:
             temp.append(compute_cider_d(cand=cand, ref=ref))
         result[name] = temp
     
