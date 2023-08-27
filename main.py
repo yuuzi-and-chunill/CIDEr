@@ -35,7 +35,7 @@ def compute_tf_idf(cand, ref, n, mode, df):
     for k in cand_tf.keys():
         if mode == "corpus":
             # 如果 IDF 模式是 "corpus"，則根據參考描述的出現次數計算 IDF 值
-            idf = np.log((len(ref) + 1.0) / (1.0 + sum([1.0 for r in ref if k in r])))
+            idf = np.log((len(ref) + 1.0) / (1.0 + sum([1.0 for r in ref if "".join(r).count("".join(list(k)))])))
         elif mode == "coco-val-df":
             # 如果 IDF 模式是 "coco-val-df"，則直接從 df 字典中獲取 IDF 值
             idf = df.get(k, 0.0)
