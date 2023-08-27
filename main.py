@@ -2,6 +2,8 @@
 import numpy as np
 from collections import Counter
 from ckiptagger import WS
+import json
+import pygsheets
 
 # 定義一個函數來計算 TF-IDF 值
 def compute_tf_idf(cand, ref, n, mode, df):
@@ -84,6 +86,48 @@ def compute_cider_d(cand, ref, n=4, mode="corpus", df=None):
     return cider_d
 
 def main():
-    pass
+    
+    with open('setting.json') as f:
+        data = dict(json.load(f).items())
+    
+    auth_file = data['auth_file']
+    gc = pygsheets.authorize(service_file = auth_file)
+
+    # setting sheet
+    sheet_url = f"https://docs.google.com/spreadsheets/d/{data['sheet_id']}/"
+    sheet = gc.open_by_url(sheet_url)
+    
+    sheet_description = sheet.worksheet_by_title(data['description_worksheet'])
+    
+    name = list(filter(None, sheet_description.get_col(1, include_tailing_empty=False)[1:]))
+    blip_2 = list(filter(None, sheet_description.get_col(3, include_tailing_empty=False)[1:]))
+    vit_gpt2 = list(filter(None, sheet_description.get_col(4, include_tailing_empty=False)[1:]))
+    git = list(filter(None, sheet_description.get_col(5, include_tailing_empty=False)[1:]))
+    ref = zip(list(filter(None, sheet_description.get_col(6, include_tailing_empty=False)[1:])), list(filter(None, sheet_description.get_col(7, include_tailing_empty=False)[1:])))
+
+    count = 1
+    result = {}
+    for name, descriptions, ref in zip(name, zip(blip_2, vit_gpt2, git), ref):
+        print(f"[INFO] Handling description {count}...")
+        count += 1
+        temp = []
+        for cand in descriptions[:3]:
+            temp.append(compute_cider_d(cand=cand, ref=ref))
+        result[name] = temp
+    
+    print(f"[INFO] Updating google sheet...")
+        
+    sheet_cider = sheet.worksheet_by_title(data['cider_worksheet'])
+    
+    title = data['cider_worksheet_title']
+    sheet_cider.update_row(1, values=title)
+    
+    row = 2
+    for (name, ciders) in result.items():
+        ciders.insert(0, name)
+        sheet_cider.update_row(row, values=ciders)
+        row += 1
+        
+    print(f"[INFO] Done.")
     
 main()
