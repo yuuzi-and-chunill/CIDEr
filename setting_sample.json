@@ -1,0 +1,7 @@
+{
+    "auth_file" : "<google sheet api key>.json",
+    "sheet_id" : "<google sheet id>",
+    "description_worksheet" : "<input data worksheet>",
+    "cider_worksheet" : "<output data worksheet>",
+    "cider_worksheet_title" : ["<title 1>", "<title 2>..."]
+}
