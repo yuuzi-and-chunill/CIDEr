@@ -165,3 +165,5 @@ data.py
 *.zip
 credentials.json
 setting.json
+captions.jsonl
+DF.txt
