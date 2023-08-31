@@ -1,6 +1,7 @@
 import json
 from collections import Counter
 import zhconv
+from tqdm import tqdm
 
 def readJsonlFile(jsonlFile):
     # return 2 layer list
@@ -31,26 +32,16 @@ def convertTW_and_split(data):
         data[i] = list(data[i].split())
     return data
 
-def contextIsInDocument(context, document):
-    # return boolean
-    # context: 要查詢的連續詞，list類型，包含多個字串
-    # document: 文檔，list類型，包含多個字串
-    if "".join(document).find("".join(list(context))) != -1:
-        return True
-    return False
-
 def getAllContext(data):
     # return list
     # data: 文檔，2 layer list類型
-    contextList = []
+    contextSet = set() # 使用集合來存儲上下文
     for contextLength in range(1, 5): # n-gram 長度4
-        print("n-gram:", contextLength)
         for document in data:
-            for i in range(len(document) - contextLength + 1):
-                l = document[i:i+contextLength]
-                if l not in contextList:
-                    contextList.append(l)
-    return contextList
+            # 使用列表推導來生成所有的n-gram上下文
+            contextSet.update([tuple(document[i:i+contextLength]) for i in range(len(document) - contextLength + 1)])
+                    
+    return list(contextSet) # 將集合轉換為列表返回
 
 def calculateDF(data):
     # return dict
@@ -58,15 +49,15 @@ def calculateDF(data):
     print("getting all context...")
     allContext = getAllContext(data)
     counter = Counter()
-    contextTotal = len(allContext)
     print("calculate DF...")
-    n = 1
-    for context in allContext:
-        print(n, "/", contextTotal)
-        n += 1
-        for i in data:
-            if contextIsInDocument(context, i):
-                counter.update([tuple(context)])
+    data_str = []
+    for item in data:
+        data_str.append("".join(item))
+    for context in tqdm(allContext):
+        context_str = "".join(list(context))
+        for item in data_str:
+            if item.find(context_str) != -1:
+                counter.update([context])
     return dict(counter)
 
 def writeFile(DF, fileLocation):
