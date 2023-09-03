@@ -5,6 +5,16 @@ from ckiptagger import WS
 import json
 import pygsheets
 
+def readDFdict(DFfile):
+    # return dict
+    # DFfile: 要讀入的檔案名稱，字串類型
+    DF = {}
+    with open(DFfile, "r", encoding="utf-8") as file:
+        for line in file.readlines():
+            line = list(line.split())
+            DF[tuple(line[:-1])] = line[-1]
+    return DF
+
 # 定義一個函數來計算 TF-IDF 值
 def compute_tf_idf(cand, ref, n, mode, df):
     # cand: 候選描述，字串類型
@@ -112,7 +122,7 @@ def main():
         count += 1
         temp = []
         for cand in descriptions[:3]:
-            temp.append(compute_cider_d(cand=cand, ref=ref))
+            temp.append(compute_cider_d(cand=cand, ref=ref, df=readDFdict("DF.txt")))
         result[name] = temp
     
     print(f"[INFO] Updating google sheet...")
