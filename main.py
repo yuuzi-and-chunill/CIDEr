@@ -63,7 +63,7 @@ def compute_tf_idf(cand, ref, n, mode, df):
     return cand_tfidf, ref_tfidf
 
 # 定義一個函數來計算 CIDEr-D 分數
-def compute_cider_d(cand, ref, n=4, mode="val-df", df=None):
+def compute_cider_d(cand, ref, n=4, mode="corpus", df=None):
     # cand: 候選描述，字串類型
     # ref: 參考描述，列表類型，包含多個字串
     # n: 最大的 n-gram 長度，整數類型
@@ -123,7 +123,7 @@ def main():
         count += 1
         temp = []
         for cand in descriptions[:3]:
-            temp.append(compute_cider_d(cand=cand, ref=ref, df=readDFdict("DF.txt")))
+            temp.append(compute_cider_d(cand=cand, ref=ref, df=readDFdict("DF.txt"), mode="val-df"))
         result[name] = temp
     
     print(f"[INFO] Updating google sheet...")
