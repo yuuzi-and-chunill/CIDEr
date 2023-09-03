@@ -10,7 +10,7 @@ def compute_tf_idf(cand, ref, n, mode, df):
     # cand: 候選描述，字串類型
     # ref: 參考描述，列表類型，包含多個字串
     # n: n-gram 的長度，整數類型
-    # mode: IDF 的計算模式，字串類型，可以是 "corpus" 或 "coco-val-df"
+    # mode: IDF 的計算模式，字串類型，可以是 "corpus" 或 "val-df"
     # df: IDF 的字典，字典類型，鍵為 n-gram，值為 IDF 值
 
     # 傳入分詞資料
@@ -38,8 +38,8 @@ def compute_tf_idf(cand, ref, n, mode, df):
         if mode == "corpus":
             # 如果 IDF 模式是 "corpus"，則根據參考描述的出現次數計算 IDF 值
             idf = np.log((len(ref) + 1.0) / (1.0 + sum([1.0 for r in ref if "".join(r).count("".join(list(k)))])))
-        elif mode == "coco-val-df":
-            # 如果 IDF 模式是 "coco-val-df"，則直接從 df 字典中獲取 IDF 值
+        elif mode == "val-df":
+            # 如果 IDF 模式是 "val-df"，則直接從 df 字典中獲取 IDF 值
             idf = df.get(k, 0.0)
         else:
             raise ValueError("Invalid mode: {}".format(mode))
@@ -56,7 +56,7 @@ def compute_cider_d(cand, ref, n=4, mode="corpus", df=None):
     # cand: 候選描述，字串類型
     # ref: 參考描述，列表類型，包含多個字串
     # n: 最大的 n-gram 長度，整數類型
-    # mode: IDF 的計算模式，字串類型，可以是 "corpus" 或 "coco-val-df"
+    # mode: IDF 的計算模式，字串類型，可以是 "corpus" 或 "val-df"
     # df: IDF 的字典，字典類型，鍵為 n-gram，值為 IDF 值
 
     # 初始化 CIDEr-D 分數
