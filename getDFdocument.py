@@ -65,6 +65,7 @@ def writeFile(DF, fileLocation, totalDocsLen):
     # DF: 每個context的DF值，dict類型
     # fileLocation: 寫入的檔案位置，string類型
     with open(fileLocation, "w", encoding="utf-8") as file:
+        file.write(f"{totalDocsLen}\n")
         for i in DF:
             s = " ".join(i) + " " + str(np.log(totalDocsLen / DF[i]))
             file.write(s)

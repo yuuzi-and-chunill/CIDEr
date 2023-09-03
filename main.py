@@ -6,22 +6,24 @@ import json
 import pygsheets
 
 def readDFdict(DFfile):
-    # return dict
+    # return datalen, dict
     # DFfile: 要讀入的檔案名稱，字串類型
     DF = {}
     with open(DFfile, "r", encoding="utf-8") as file:
+        dataLen = int(file.readlines()[0])
         for line in file.readlines():
             line = list(line.split())
             DF[tuple(line[:-1])] = float(line[-1])
-    return DF
+    return dataLen, DF
 
 # 定義一個函數來計算 TF-IDF 值
-def compute_tf_idf(cand, ref, n, mode, df):
+def compute_tf_idf(cand, ref, n, mode, df, totalDocsLen):
     # cand: 候選描述，字串類型
     # ref: 參考描述，列表類型，包含多個字串
     # n: n-gram 的長度，整數類型
     # mode: IDF 的計算模式，字串類型，可以是 "corpus" 或 "val-df"
     # df: IDF 的字典，字典類型，鍵為 n-gram，值為 IDF 值
+    # totalDocsLen: DF字典的文檔數，
 
     # 傳入分詞資料
     ws = WS("./data")
@@ -63,7 +65,7 @@ def compute_tf_idf(cand, ref, n, mode, df):
     return cand_tfidf, ref_tfidf
 
 # 定義一個函數來計算 CIDEr-D 分數
-def compute_cider_d(cand, ref, n=4, mode="corpus", df=None):
+def compute_cider_d(cand, ref, n=4, mode="corpus", df=None, totalDocsLen=None):
     # cand: 候選描述，字串類型
     # ref: 參考描述，列表類型，包含多個字串
     # n: 最大的 n-gram 長度，整數類型
@@ -76,7 +78,7 @@ def compute_cider_d(cand, ref, n=4, mode="corpus", df=None):
     # 對每個 n-gram 長度，計算 TF-IDF 值和餘弦相似度
     for i in range(1, n+1):
         # 計算候選描述和參考描述的 TF-IDF 值
-        cand_tfidf, ref_tfidf = compute_tf_idf(cand, ref, i, mode, df)
+        cand_tfidf, ref_tfidf = compute_tf_idf(cand, ref, i, mode, df, totalDocsLen)
 
         # 將 TF-IDF 值轉換為向量
         cand_vec = np.array([v for k, v in sorted(cand_tfidf.items())])
@@ -123,7 +125,8 @@ def main():
         count += 1
         temp = []
         for cand in descriptions[:3]:
-            temp.append(compute_cider_d(cand=cand, ref=ref, df=readDFdict("DF.txt"), mode="val-df"))
+            totalDocsLen, df = readDFdict("DF.txt")
+            temp.append(compute_cider_d(cand=cand, ref=ref, df=df, totalDocsLen=totalDocsLen, mode="val-df"))
         result[name] = temp
     
     print(f"[INFO] Updating google sheet...")
