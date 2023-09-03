@@ -12,7 +12,7 @@ def readDFdict(DFfile):
     with open(DFfile, "r", encoding="utf-8") as file:
         for line in file.readlines():
             line = list(line.split())
-            DF[tuple(line[:-1])] = line[-1]
+            DF[tuple(line[:-1])] = float(line[-1])
     return DF
 
 # 定義一個函數來計算 TF-IDF 值
@@ -51,6 +51,7 @@ def compute_tf_idf(cand, ref, n, mode, df):
         elif mode == "val-df":
             # 如果 IDF 模式是 "val-df"，則直接從 df 字典中獲取 IDF 值
             idf = df.get(k, 0.0)
+            # print(k, idf)
         else:
             raise ValueError("Invalid mode: {}".format(mode))
         # 根據 TF 和 IDF 計算 TF-IDF 值
@@ -62,7 +63,7 @@ def compute_tf_idf(cand, ref, n, mode, df):
     return cand_tfidf, ref_tfidf
 
 # 定義一個函數來計算 CIDEr-D 分數
-def compute_cider_d(cand, ref, n=4, mode="corpus", df=None):
+def compute_cider_d(cand, ref, n=4, mode="val-df", df=None):
     # cand: 候選描述，字串類型
     # ref: 參考描述，列表類型，包含多個字串
     # n: 最大的 n-gram 長度，整數類型
