@@ -52,8 +52,7 @@ def compute_tf_idf(cand, ref, n, mode, df, totalDocsLen):
             idf = np.log((len(ref) + 1.0) / (1.0 + sum([1.0 for r in ref if "".join(r).count("".join(list(k)))])))
         elif mode == "val-df":
             # 如果 IDF 模式是 "val-df"，則直接從 df 字典中獲取 IDF 值
-            idf = df.get(k, 0.0)
-            # print(k, idf)
+            idf = df.get(k, np.log(totalDocsLen + 1))
         else:
             raise ValueError("Invalid mode: {}".format(mode))
         # 根據 TF 和 IDF 計算 TF-IDF 值
@@ -75,6 +74,8 @@ def compute_cider_d(cand, ref, n=4, mode="corpus", df=None, totalDocsLen=None):
     # 初始化 CIDEr-D 分數
     cider_d = 0.0
 
+    # weight = [0.375, 0.275, 0.2, 0.15]
+
     # 對每個 n-gram 長度，計算 TF-IDF 值和餘弦相似度
     for i in range(1, n+1):
         # 計算候選描述和參考描述的 TF-IDF 值
@@ -94,6 +95,7 @@ def compute_cider_d(cand, ref, n=4, mode="corpus", df=None, totalDocsLen=None):
 
         # 將該 n-gram 的分數累加到 CIDEr-D 分數中，並乘以一個權重因子 10.0 ** (i - 1)
         # cider_d += score * 10.0 ** (i - 1)
+        # cider_d += score * weight[i-1]
         cider_d += score / n
         
     return cider_d

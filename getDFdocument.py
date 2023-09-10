@@ -14,15 +14,13 @@ def readJsonlFile(jsonlFile):
             data.append(json_obj["zh"]["caption/tokenized/lowercase"])
     return data
 
-def sentenceConnect(data):
+def sentenceBreakUp(data):
     # return list
     # data: 要連接的句子，2 layer list類型
     document = []
-    for i in data:
-        s = i[0]
-        for j in range(1, len(i)):
-            s = s + " " + i[j]
-        document.append(s)
+    for group in data:
+        for description in group:
+            document.append(description)
     return document
 
 def convertTW_and_split(data):
@@ -74,7 +72,7 @@ def writeFile(DF, fileLocation, totalDocsLen):
 def main():
     # 文件處理
     print("File reading...")
-    data = convertTW_and_split(sentenceConnect(readJsonlFile("captions.jsonl")))
+    data = convertTW_and_split(sentenceBreakUp(readJsonlFile("captions.jsonl")))
     
     # 計算DF
     DF = calculateDF(data)
