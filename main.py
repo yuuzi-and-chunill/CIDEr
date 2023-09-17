@@ -4,6 +4,7 @@ from collections import Counter
 from ckiptagger import WS
 import json
 import pygsheets
+import zhconv
 
 def readDFdict(DFfile):
     # return datalen, dict
@@ -31,7 +32,6 @@ def compute_tf_idf(cand, ref, n, mode, df, totalDocsLen):
     # 將候選描述和參考描述進行分詞
     cand = ws([cand])[0]
     ref = ws(ref)
-    # print(cand)
     
     # 將候選描述和參考描述轉換為 n-gram 的計數器
     cand_counter = Counter([tuple(cand[i:i+n]) for i in range(len(cand)-n+1)])
@@ -84,7 +84,6 @@ def compute_cider_d(cand, ref, n=4, mode="corpus", df=None, totalDocsLen=None):
         # 將 TF-IDF 值轉換為向量
         cand_vec = np.array([v for k, v in sorted(cand_tfidf.items())])
         ref_vec = np.array([[v for k, v in sorted(rt.items())] for rt in ref_tfidf])
-        # print(cand_vec, ref_vec, sep='\n------------------------\n')
 
         # 計算候選描述和參考描述的餘弦相似度
         # cos_sim = np.dot(cand_vec, ref_vec.T) / (np.linalg.norm(cand_vec) * np.linalg.norm(ref_vec, axis=1))
@@ -113,36 +112,31 @@ def main():
     sheet = gc.open_by_url(sheet_url)
     
     sheet_description = sheet.worksheet_by_title(data['description_worksheet'])
-    
-    name = list(filter(None, sheet_description.get_col(1, include_tailing_empty=False)[1:]))
-    blip_2 = list(filter(None, sheet_description.get_col(3, include_tailing_empty=False)[1:]))
-    vit_gpt2 = list(filter(None, sheet_description.get_col(4, include_tailing_empty=False)[1:]))
-    git = list(filter(None, sheet_description.get_col(5, include_tailing_empty=False)[1:]))
-    ref = zip(list(filter(None, sheet_description.get_col(6, include_tailing_empty=False)[1:])), list(filter(None, sheet_description.get_col(7, include_tailing_empty=False)[1:])))
-
-    count = 1
-    result = {}
-    for name, descriptions, ref in zip(name, zip(blip_2, vit_gpt2, git), ref):
-        print(f"[INFO] Handling description {count}...")
-        count += 1
-        temp = []
-        for cand in descriptions[:3]:
-            totalDocsLen, df = readDFdict("DF.txt")
-            temp.append(compute_cider_d(cand=cand, ref=ref, df=df, totalDocsLen=totalDocsLen, mode="val-df"))
-        result[name] = temp
-    
-    print(f"[INFO] Updating google sheet...")
-        
     sheet_cider = sheet.worksheet_by_title(data['cider_worksheet'])
     
+    ids = list(filter(None, sheet_description.get_col(1, include_tailing_empty=False)[1:]))
+    blip_2 = list(filter(None, sheet_description.get_col(2, include_tailing_empty=False)[1:]))
+    vit_gpt2 = list(filter(None, sheet_description.get_col(3, include_tailing_empty=False)[1:]))
+    git = list(filter(None, sheet_description.get_col(4, include_tailing_empty=False)[1:]))
+    
+    ref = {}
+    with open("D:\GitHub\yuuzi-and-chunill\CIDEr\captions.jsonl", "r") as file:
+        for line in file:
+            json_obj = json.loads(line)
+            ref[json_obj["image/key"]] = [zhconv.convert(_.replace(' ', ''), "zh-tw") for _ in json_obj["zh"]["caption/tokenized/lowercase"]]
+
     title = data['cider_worksheet_title']
     sheet_cider.update_row(1, values=title)
-    
-    row = 2
-    for (name, ciders) in result.items():
-        ciders.insert(0, name)
-        sheet_cider.update_row(row, values=ciders)
-        row += 1
+
+    count = 1
+    for Id, descriptions in zip(ids, zip(blip_2, vit_gpt2, git)):
+        print(f"[INFO] Handling description {count}...")
+        result = [Id]
+        for cand in descriptions[:3]:
+            totalDocsLen, df = readDFdict("DF.txt")
+            result.append(compute_cider_d(cand=cand, ref=ref[Id], df=df, totalDocsLen=totalDocsLen, mode="val-df"))
+        sheet_cider.update_row(count+1, values=result)
+        count += 1
         
     print(f"[INFO] Done.")
     
